@@ -1,0 +1,21 @@
+package com.jane;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class NioApplicationTests {
+
+	@Test
+	public void contextLoads() {
+		ByteBuffer byteBuffer = ByteBuffer.allocate(1000);
+		CharBuffer charBuffer = CharBuffer.allocate(1000);
+	}
+
+}
