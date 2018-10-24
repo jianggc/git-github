@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.jane.one2one.foreign">
+
+    <class name="Department" table="DEPARTMENTS">
+
+        <id name="deptId" type="java.lang.Integer">
+            <column name="DEPT_ID" />
+            <generator class="native" />
+        </id>
+        
+        <property name="deptName" type="java.lang.String">
+            <column name="DEPT_NAME" />
+        </property>
+		
+		<!-- 使用 many-to-one 的方式来映射 1-1 关联关系 -->
+		<!-- name:deparment中关联的manager的属性名；
+			class：deparment中关联的manager的类型；
+			column：数据表DEPARTMENTS中拥有的外键列MGR_ID
+			unique：为外键列添加唯一索引
+		 -->
+		<many-to-one name="mgr" class="Manager" 
+			column="MGR_ID" unique="true">
+		</many-to-one>	        
+			        
+    </class>
+</hibernate-mapping>
