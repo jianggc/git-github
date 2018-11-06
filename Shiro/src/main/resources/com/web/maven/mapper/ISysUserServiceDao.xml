@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.web.maven.dao.ISysUserServiceDao">
+	<resultMap type="com.web.maven.model.SysUser" id="sysuserServiceMap">
+		 <id column="id" jdbcType="BIGINT" property="id" />
+	    <result column="user_code" jdbcType="VARCHAR" property="userCode" />
+	    <result column="user_name" jdbcType="VARCHAR" property="userName" />
+	    <result column="password" jdbcType="VARCHAR" property="password" />
+	    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+	    <result column="last_login_time" jdbcType="TIMESTAMP" property="lastLoginTime" />
+	    <result column="status" jdbcType="INTEGER" property="status" />
+	</resultMap>
+	
+	<resultMap type="com.web.maven.model.SysPower" id="syspowerServiceMap">
+		 <id column="id" property="id" jdbcType="BIGINT" />
+	    <result column="name" property="name" jdbcType="VARCHAR" />
+	    <result column="description" property="description" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<resultMap type="com.web.maven.model.SysRole" id="sysroleServiceMap">
+		<id column="id" property="id" jdbcType="BIGINT" />
+	    <result column="name" property="name" jdbcType="VARCHAR" />
+	    <result column="available" property="available" jdbcType="SMALLINT" />
+	</resultMap>
+	
+ <select id="getUserByLoginCode" parameterType="java.lang.String" resultMap="sysuserServiceMap">
+    select * from tb_sys_user
+    where user_code = #{loginCode,jdbcType=VARCHAR}
+  </select>
+
+  
+  <select id="getPowerListByUserId" parameterType="java.lang.Long" resultMap="syspowerServiceMap">
+     SELECT p.id,p.power_code,p.power_type 
+     FROM tb_sys_permission p,tb_sys_role_permission rp,tb_sys_user_role ru where 
+    p.id=rp.p_id and rp.r_id=ru.r_id and ru.u_id = #{userId,jdbcType=BIGINT}
+  </select>
+  
+
+  
+  <select id="getRoleListByUserId" parameterType="java.lang.Long" resultMap="sysroleServiceMap">
+    SELECT t.id,t.name FROM tb_sys_role t ,tb_sys_user_role r 
+    where r.r_id=t.id and  r.u_id = #{userId,jdbcType=BIGINT}
+   
+  </select>
+  
+</mapper>

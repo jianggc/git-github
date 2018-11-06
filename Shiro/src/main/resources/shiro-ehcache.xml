@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache updateCheck="false"  >
+
+<!--  -->
+	<!-- cacheManager settings xml -->
+    <defaultCache
+            maxElementsInMemory="1000"
+            eternal="false"
+            timeToIdleSeconds="1200"
+            timeToLiveSeconds="1200"
+            overflowToDisk="false">
+    </defaultCache>
+    
+     <cache name="authorizationCache"
+           maxBytesLocalHeap="200M"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true">
+    </cache>
+
+    <cache name="authenticationCache"
+    	   maxBytesLocalHeap="200M"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true">
+    </cache>
+
+    <cache name="test"
+           maxElementsInMemory="1000"
+           maxElementsOnDisk="5000"
+           eternal="false"
+           timeToIdleSeconds="120"
+           timeToLiveSeconds="0">
+    </cache>
+
+	<cache name="shiro-activeSessionCache"
+		   maxBytesLocalHeap="200M"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true">
+    </cache>
+</ehcache>

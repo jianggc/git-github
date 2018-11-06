@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+   	<bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+		<constructor-arg value="rememberMe"/>
+		<property name="httpOnly" value="true"/>
+		<!-- 30天-->
+		<property name="maxAge" value="2592000"/>
+	</bean>
+	
+	<!-- rememberMe管理器-->
+	<bean id="rememberMeManager"
+		class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+<!-- 		<property name="cipherKey" value=" -->
+<!--   			#{T(org.apache.shiro.codec.Base64).decode('4AvVhmFLUs0KTA3Kprsdag==')}"/>  -->
+		<property name="cookie" ref="rememberMeCookie"/>
+	</bean>
+    
+    <!-- 配置需要向Cookie中保存数据的配置模版 --> 
+	<bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie"> 
+	    <!-- 在Tomcat运行下默认使用的Cookie的名字为JSESSIONID --> 
+	    <constructor-arg value="shiro-session-id"/> 
+	    <!-- 保证该系统不会受到跨域的脚本操作供给 --> 
+	    <property name="httpOnly" value="true"/> 
+	    <!-- 定义Cookie的过期时间，单位为秒，如果设置为-1表示浏览器关闭，则Cookie消失 --> 
+	    <property name="maxAge" value="-1"/> 
+	</bean>
+
+    
+    <!-- Session ID 生成器-->
+	<bean id="sessionIdGenerator"
+		class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator"/>
+	
+	<!-- Session DAO. 继承 EnterpriseCacheSessionDAO -->
+	<bean id="sessionDAO"
+		class="com.web.maven.shiro.MySessionDao">
+		<property name="activeSessionsCacheName" value="shiro-activeSessionCache"/>
+		<property name="sessionIdGenerator" ref="sessionIdGenerator"/>
+	</bean>
+	
+	<!-- 会话管理器-->
+	<bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+	 <!-- 定义的是全局的session会话超时时间，此操作会覆盖web.xml文件中的超时时间配置 -->
+		<property name="globalSessionTimeout" value="1800000"/>
+		<!-- 删除所有无效的Session对象，此时的session被保存在了内存里面 -->
+		<property name="deleteInvalidSessions" value="true"/>
+		 <!-- 定义要使用的无效的Session定时调度器 -->
+        <property name="sessionValidationScheduler" ref="sessionValidationScheduler"/>
+         <!-- 需要让此session可以使用该定时调度器进行检测 -->
+        <property name="sessionValidationSchedulerEnabled" value="true"/>
+        <!-- 定义Session可以进行操作的DAO -->
+		<property name="sessionDAO" ref="sessionDAO"/>
+		<!-- 所有的session一定要将id设置到Cookie之中，需要提供有Cookie的操作模版 -->
+        <property name="sessionIdCookie" ref="sessionIdCookie"/>
+         <!-- 定义sessionIdCookie模版可以进行操作的启用 -->
+        <property name="sessionIdCookieEnabled" value="true"/>
+        <!-- url sessionId  重写 -->
+        <property name="sessionIdUrlRewritingEnabled" value="true"/>
+	</bean>
+	
+    <!-- 安全管理器 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!-- 注入自定义Realm -->
+<!--         <property name="realm" ref="customRealm"/> -->
+        <!-- 注入缓存管理器 -->
+        <property name="cacheManager" ref="cacheManager"/>
+        <property name="authenticator" ref="authenticator" />
+        <property name="realms">
+        	<list>
+    			<ref bean="customRealm"/>
+<!--     			<ref bean="customRealm2"/> -->
+    		</list>
+        </property>
+        <property name="sessionManager" ref="sessionManager" />
+        <property name="rememberMeManager" ref="rememberMeManager" />
+    </bean>
+    <bean id="authenticator" 
+    	class="org.apache.shiro.authc.pam.ModularRealmAuthenticator">
+    	<property name="authenticationStrategy">
+    		<bean class="org.apache.shiro.authc.pam.AtLeastOneSuccessfulStrategy"></bean>
+    	</property>
+    </bean>
+<!--     <bean id="authenticator"  -->
+<!--     	class="org.apache.shiro.authc.pam.ModularRealmAuthenticator"> -->
+<!--         <property name="realms"> -->
+<!--         	<list> -->
+<!--     			<ref bean="customRealm"/> -->
+<!--     			<ref bean="customRealm2"/> -->
+<!--     		</list> -->
+<!--         </property> -->
+<!--         <property name="authenticationStrategy"> -->
+<!--     		<bean class="org.apache.shiro.authc.pam.AtLeastOneSuccessfulStrategy"></bean> -->
+<!--     	</property> -->
+<!--     </bean> -->
+    <!-- 缓存管理器 -->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:shiro-ehcache.xml"/>
+    </bean>
+    
+    <!-- 配置session的定时验证检测程序类，以让无效的session释放 -->
+    <bean id="sessionValidationScheduler"
+        class="org.apache.shiro.session.mgt.quartz.QuartzSessionValidationScheduler">
+        <!-- 设置session的失效扫描间隔，单位为毫秒 -->
+        <property name="sessionValidationInterval" value="100000"/>
+        <property name="sessionManager" ref="sessionManager" />
+    </bean> 
+    
+      <!-- 自定义Realm -->
+    <bean id="customRealm" class="com.web.maven.shiro.CustomRealm">
+        <!-- 将凭证匹配器设置到realm中，realm按照凭证匹配器的要求进行散列 -->
+        <property name="credentialsMatcher">
+           <bean  class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+              <property name="hashAlgorithmName" value="MD5"/>
+              <property name="hashIterations" value="1"/>
+            </bean>
+        </property>
+        <property name="authorizationCacheName" value="authorizationCache"/>
+        <property name="authenticationCacheName" value="authenticationCache"/>
+    </bean>
+      <!-- 自定义SecondRealm -->
+    <bean id="customRealm2" class="com.web.maven.shiro.CustomRealm2">
+        <!-- 将凭证匹配器设置到realm中，realm按照凭证匹配器的要求进行散列 -->
+        <property name="credentialsMatcher">
+           <bean  class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+              <property name="hashAlgorithmName" value="SHA1"/>
+              <property name="hashIterations" value="1"/>
+            </bean>
+        </property>
+    </bean>
+    
+    <!-- 配置lifecycleBeanPostProcessor，可以自动的调用配置在spring IOC 容器中shiro bean的生命周期方法。 -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"></bean>
+
+	 <!-- 开启Shiro的注解，实现对Controller的方法级权限检查(如@RequiresRoles,@RequiresPermissions),
+	 		需借助SpringAOP扫描使用Shiro注解的类,并在必要时进行安全逻辑验证  -->   
+    <!-- Enable Shiro Annotations for Spring-configured beans. Only run after the lifecycleBeanProcessor has run -->  
+	<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" depends-on="lifecycleBeanPostProcessor" /> 
+	
+	<bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager" />
+	</bean>
+	
+    <!-- Shiro过滤器 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!-- Shiro的核心安全接口,这个属性是必须的 -->
+        <property name="securityManager" ref="securityManager"/>
+        <!-- loginUrl认证提交地址，如果没有认证将会请求此地址进行认证，请求此地址将由formAuthenticationFilter进行表单认证 -->
+        <property name="loginUrl" value="/login"/>
+        <!-- if is Authenticated,then ,rediret to the url  -->
+        <property name="successUrl" value="/index"/>
+        <!-- has no permission and then redirect to the url  -->
+        <property name="unauthorizedUrl" value="/refuse"></property>
+       <!--<property name="filters">
+            <map>
+               		重写 退出过滤器
+                <entry key="logout" value-ref="systemLogoutFilter" />
+            </map>
+        </property>-->
+        <!-- Shiro连接约束配置,即过滤链的定义 -->
+        <property name="filterChainDefinitions">
+            <value>
+                <!-- /** = anon所有url都可以匿名访问 -->
+                <!-- 对静态资源设置匿名访问 -->
+                /test=anon
+                /favicon.ico = anon
+                /images/** = anon
+                /js/** = anon
+                /styles/** = anon
+                /css/** = anon
+                /*.jar = anon
+                <!-- 验证码，可匿名访问 -->
+                /validateCode = anon  
+                /login = anon
+                /doLogin = anon
+                <!--请求logout，shrio擦除sssion-->
+                /logout=logout
+                <!-- /** = authc 所有url都必须认证通过才可以访问 -->
+                /**=authc
+            </value>
+        </property>
+<!--         <property name="filterChainDefinitionMap" ref="filterChainDefinitionMap" /> -->
+    </bean>
+     <!-- 配置一个 bean, 该 bean 实际上是一个 Map. 通过实例工厂方法的方式 -->
+<!--     <bean id="filterChainDefinitionMap"  -->
+<!--     	factory-bean="filterChainDefinitionMapBuilder" factory-method="buildFilterChainDefinitionMap"></bean> -->
+    
+<!--     <bean id="filterChainDefinitionMapBuilder" -->
+<!--     	class="com.web.maven.factory.FilterChainDefinitionMapBuilder"></bean> -->
+	
+</beans>

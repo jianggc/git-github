@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.web.maven.dao.SysRolePowerMapper" >
+  <resultMap id="BaseResultMap" type="com.web.maven.model.SysRolePower" >
+    <id column="r_id" property="rId" jdbcType="BIGINT" />
+    <id column="p_id" property="pId" jdbcType="BIGINT" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="com.web.maven.model.SysRolePower" >
+    delete from tb_sys_role_permission
+    where r_id = #{rId,jdbcType=BIGINT}
+      and p_id = #{pId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.web.maven.model.SysRolePower" >
+    insert into tb_sys_role_permission (r_id, p_id)
+    values (#{rId,jdbcType=BIGINT}, #{pId,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.web.maven.model.SysRolePower" >
+    insert into tb_sys_role_permission
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="rId != null" >
+        r_id,
+      </if>
+      <if test="pId != null" >
+        p_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="rId != null" >
+        #{rId,jdbcType=BIGINT},
+      </if>
+      <if test="pId != null" >
+        #{pId,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+</mapper>
